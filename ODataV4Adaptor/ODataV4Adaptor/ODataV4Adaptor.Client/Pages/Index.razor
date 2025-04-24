@@ -1,0 +1,32 @@
+﻿@page "/"
+
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using ODataV4Adaptor.Client.Models
+
+<SfGrid TValue="OrdersDetails" Height="250" AllowPaging="true" AllowFiltering="true" AllowSorting="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Cancel", "Search" })">
+    <SfDataManager @ref="DataManager" Url="https://localhost:7078/odata/grid" Adaptor="Adaptors.ODataV4Adaptor"></SfDataManager>
+    <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field="OrderID" HeaderText="Order ID" ValidationRules="@(new ValidationRules{ Required= true })" IsPrimaryKey="true" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+        <GridColumn Field="CustomerID" HeaderText="Customer Name" ValidationRules="@(new ValidationRules{ Required= true, MinLength=3 })" Width="100"></GridColumn>
+        <GridColumn Field="EmployeeID" HeaderText="Employee ID" TextAlign="TextAlign.Right" Width="100"></GridColumn>
+        <GridColumn Field="ShipCountry" HeaderText="Ship Country" Width="120"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@code {
+    public SfDataManager? DataManager { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (DataManager?.DataAdaptor is ODataV4Adaptor odataAdaptor)
+        {
+            RemoteOptions options = odataAdaptor.Options;
+            options.EnableODataSearchFallback = true;
+            odataAdaptor.Options = options;
+        }
+    }
+
+}

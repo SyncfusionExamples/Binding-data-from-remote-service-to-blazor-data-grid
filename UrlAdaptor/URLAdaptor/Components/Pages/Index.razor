@@ -1,0 +1,16 @@
+﻿@page "/"
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using URLAdaptor.Models
+
+<SfGrid TValue="OrdersDetails" Height="348" AllowPaging="true" AllowFiltering="true" AllowSorting="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Cancel", "Search" })">
+    <SfDataManager Url="https://localhost:7169/api/grid" InsertUrl="https://localhost:7169/api/grid/Insert" UpdateUrl="https://localhost:7169/api/grid/Update" RemoveUrl="https://localhost:7169/api/grid/Remove"
+                   BatchUrl="https://localhost:7169/api/grid/BatchUpdate" CrudUrl="https://localhost:7169/api/grid/CrudUpdate" Adaptor="Adaptors.UrlAdaptor"></SfDataManager>
+    <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field="OrderID" HeaderText="Order ID" ValidationRules="@(new ValidationRules{ Required= true })" IsPrimaryKey="true" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+        <GridColumn Field="CustomerID" HeaderText="Customer Name" ValidationRules="@(new ValidationRules{ Required= true, MinLength=3 })" Width="100"></GridColumn>
+        <GridColumn Field="ShipCity" HeaderText="Ship City" Width="100"></GridColumn>
+        <GridColumn Field="ShipCountry" HeaderText="Ship Country" Width="120"></GridColumn>
+    </GridColumns>
+</SfGrid>
