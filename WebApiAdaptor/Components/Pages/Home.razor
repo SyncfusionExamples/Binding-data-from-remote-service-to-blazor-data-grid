@@ -1,0 +1,16 @@
+﻿@page "/"
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor
+@using WebApiAdaptor.Models
+
+<SfGrid TValue="OrdersDetails" AllowPaging="true" AllowFiltering="true" AllowSorting="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Search", "Cancel" })">
+    <SfDataManager Url="https://localhost:7167/api/Grid" Adaptor="Adaptors.WebApiAdaptor"></SfDataManager>
+    <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field="OrderID" HeaderText="Order ID" IsPrimaryKey="true" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+        <GridColumn Field="CustomerID" HeaderText="Customer Name" Width="100"></GridColumn>
+        <GridColumn Field="ShipCity" HeaderText="Ship City" Width="100"></GridColumn>
+        <GridColumn Field="ShipCountry" HeaderText="Ship Country" Width="120"></GridColumn>
+    </GridColumns>
+</SfGrid>
