@@ -1,0 +1,106 @@
+﻿@page "/"
+
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Calendars
+
+<SfGrid TValue="OrderData" @ref="Grid" Height="500px" AllowPaging="true" AllowFiltering="true" AllowSorting="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Cancel", "Search" })">
+    <SfDataManager AdaptorInstance="@typeof(CustomAdaptor)" Adaptor="Adaptors.CustomAdaptor"></SfDataManager>
+
+    <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field="@nameof(OrderData.OrderID)" HeaderText="Order ID" IsPrimaryKey="true" Width="140" TextAlign="TextAlign.Right" ValidationRules="@(new ValidationRules { Required = true })"></GridColumn>
+        <GridColumn Field="@nameof(OrderData.CustomerID)" HeaderText="Customer ID" Width="140" ValidationRules="@(new ValidationRules { Required = true })"></GridColumn>
+        <GridColumn Field="@nameof(OrderData.EmployeeID)" HeaderText="Employee ID" Width="120" TextAlign="TextAlign.Right"></GridColumn>
+        <GridColumn Field="@nameof(OrderData.ShipCountry)" HeaderText="Ship Country" Width="150"></GridColumn>
+    </GridColumns>
+
+</SfGrid>
+
+@code {
+    private SfGrid<OrderData> Grid;
+    public List<OrderData> Orders { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Orders = OrderData.GetAllRecords();
+    }
+
+    public class CustomAdaptor : DataAdaptor
+    {
+        public override object Read(DataManagerRequest dm, string key = null)
+        {
+            IEnumerable<OrderData> DataSource = OrderData.GetAllRecords();
+
+            if (dm.Search != null && dm.Search.Count > 0)
+                DataSource = DataOperations.PerformSearching(DataSource, dm.Search);
+
+            if (dm.Sorted != null && dm.Sorted.Count > 0)
+                DataSource = DataOperations.PerformSorting(DataSource, dm.Sorted);
+
+            if (dm.Where != null && dm.Where.Count > 0)
+                DataSource = DataOperations.PerformFiltering(DataSource, dm.Where, dm.Where[0].Operator);
+
+            int count = DataSource.Cast<OrderData>().Count();
+
+            if (dm.Skip != 0)
+                DataSource = DataOperations.PerformSkip(DataSource, dm.Skip);
+
+            if (dm.Take != 0)
+                DataSource = DataOperations.PerformTake(DataSource, dm.Take);
+
+            return dm.RequiresCounts
+                ? new DataResult() { Result = DataSource, Count = count }
+                : (object)DataSource;
+        }
+
+        public override object Insert(DataManager dataManager, object record, string additionalParam)
+        {
+            if(record == null){
+                return "no record";
+
+            }
+            // Check if the record is null before inserting
+            if (record is OrderData orderData)
+            {
+                OrderData.GetAllRecords().Insert(0, orderData);
+            }
+            return record;
+        }
+        public override object Update(DataManager dataManager, object updateRecord, string primaryColumnName, string additionalParam)
+        {
+            if (updateRecord is OrderData updatedOrder)
+            {
+                // Retrieve the existing order based on the primary key
+                var existingOrder = OrderData.GetAllRecords()
+                    .FirstOrDefault(order => order.OrderID == updatedOrder.OrderID);
+
+                if (existingOrder != null)
+                {
+                    // Update properties if they are not null or default
+                    existingOrder.CustomerID = updatedOrder.CustomerID;
+                    existingOrder.EmployeeID = updatedOrder.EmployeeID;
+                    existingOrder.ShipCountry = updatedOrder.ShipCountry;
+                    existingOrder.Freight = updatedOrder.Freight;
+                    existingOrder.Verified = updatedOrder.Verified;
+                }
+            }
+
+            // Call the base method to complete the update process
+            return (updateRecord);
+
+        }
+        public override object Remove(DataManager dataManager, object primaryColumnValue, string primaryColumnName, string additionalParam)
+        {
+            int orderId = int.Parse(primaryColumnValue.ToString());
+            var data = OrderData.GetAllRecords().FirstOrDefault(orderData => orderData.OrderID == orderId);
+            if (data != null)
+            {
+                // Remove the record from the data collection
+                OrderData.GetAllRecords().Remove(data);
+            }
+            return (primaryColumnValue);
+        }
+    }
+}

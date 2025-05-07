@@ -1,0 +1,89 @@
+﻿
+    @page "/"
+
+    @using Syncfusion.Blazor
+    @using Syncfusion.Blazor.Data
+    @using Syncfusion.Blazor.Grids
+    @using System.Text.Json.Serialization;
+
+    <SfGrid TValue="OrderData"
+            Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Update", "Search", "Cancel" })">
+    <SfDataManager Url="https://localhost:7078/graphql" GraphQLAdaptorOptions="@adaptorOptions" Adaptor="Adaptors.GraphQLAdaptor">
+        </SfDataManager>
+        <GridEditSettings AllowEditing="true" AllowDeleting="true" AllowAdding="true" Mode="EditMode.Normal"></GridEditSettings>
+        <GridColumns>
+            <GridColumn Field="OrderID" HeaderText="Order ID" IsPrimaryKey="true" Width="100" TextAlign="TextAlign.Right"></GridColumn>
+            <GridColumn Field="CustomerID" HeaderText="Customer Name" Width="100"></GridColumn>
+            <GridColumn Field="ShipCity" HeaderText="Ship City" Width="100"></GridColumn>
+            <GridColumn Field="ShipCountry" HeaderText="Ship Country" Width="120"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+
+    @code {
+        private GraphQLAdaptorOptions adaptorOptions = new GraphQLAdaptorOptions
+            {
+                Query = @"query ordersData($dataManager: DataManagerRequestInput!) {
+                        ordersData(dataManager: $dataManager) {
+                            count
+                            result {
+                                orderID
+                                customerID
+                                shipCity
+                                shipCountry
+                            }
+                        }
+                    }",
+                Mutation = new GraphQLMutation
+                {
+                    Insert = @"mutation create($record: OrderDataInput!, $index: Int!, $action: String!, $additionalParameters: Any) {
+                            createOrder(record: $record, index: $index, action: $action, additionalParameters: $additionalParameters) {
+                                orderID
+                                customerID
+                                shipCity
+                                shipCountry
+                            }
+                        }",
+                    Update = @"mutation update($record: OrderDataInput!, $action: String!, $primaryColumnName: String!, $primaryColumnValue: Int!, $additionalParameters: Any) {
+                            updateOrder(record: $record, action: $action, primaryColumnName: $primaryColumnName, primaryColumnValue: $primaryColumnValue, additionalParameters: $additionalParameters) {
+                                orderID
+                                customerID
+                                shipCity
+                                shipCountry
+                            }
+                        }",
+                    Delete = @"mutation delete($primaryColumnValue: Int!, $action: String!, $primaryColumnName: String!, $additionalParameters: Any) {
+                            deleteOrder(primaryColumnValue: $primaryColumnValue, action: $action, primaryColumnName: $primaryColumnName, additionalParameters: $additionalParameters) {
+                                orderID
+                                customerID
+                                shipCity
+                                shipCountry
+                            }
+                        }",
+                    Batch = @"
+                    mutation batch($changed: [OrderDataInput!], $added: [OrderDataInput!], $deleted: [OrderDataInput!], $action: String!, $primaryColumnName: String!, $additionalParameters: Any, $dropIndex: Int) {
+                      batchUpdate(changed: $changed, added: $added, deleted: $deleted, action: $action, primaryColumnName :$primaryColumnName, additionalParameters: $additionalParameters, dropIndex: $dropIndex) {
+                                orderID
+                                customerID
+                                shipCity
+                                shipCountry
+                      }
+                    }"
+                },
+                ResolverName = "ordersData"
+            };
+
+        public class OrderData
+        {
+            [JsonPropertyName("orderID")]
+            public int OrderID { get; set; }
+
+            [JsonPropertyName("customerID")]
+            public string? CustomerID { get; set; }
+
+            [JsonPropertyName("shipCity")]
+            public string? ShipCity { get; set; }
+
+            [JsonPropertyName("shipCountry")]
+            public string? ShipCountry { get; set; }
+        }
+    }
