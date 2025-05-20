@@ -1,0 +1,40 @@
+﻿@page "/"
+
+
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.Grids
+
+<SfGrid TValue="Order" ID="Grid" AllowSorting="true" AllowFiltering="true" AllowPaging="true">
+    <GridEditSettings AllowDeleting="true"></GridEditSettings>
+    <SfDataManager Adaptor="Adaptors.CustomAdaptor">
+        <CustomAdaptorComponent ></CustomAdaptorComponent>
+    </SfDataManager>
+    <GridPageSettings PageSize="8"></GridPageSettings>
+    <GridColumns>
+        <GridColumn Field=@nameof(Order.OrderID) HeaderText="Order ID" IsPrimaryKey="true" TextAlign="@TextAlign.Center" Width="140"></GridColumn>
+        <GridColumn Field=@nameof(Order.CustomerID) HeaderText="Customer Name" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(Order.Freight) HeaderText="Freight" TextAlign="@TextAlign.Center" Width="140"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@code{
+    public static List<Order> Orders { get; set; }
+    public Query Qry { get; set; } = new Query().AddParams("id", 2).AddParams("str", "23");
+    public class Order
+    {
+        public List<Order> GetAllRecords()
+        {
+            Orders = Enumerable.Range(1, 75).Select(x => new Order()
+            {
+                OrderID = 1000 + x,
+                CustomerID = (new string[] { "ALFKI", "ANANTR", "ANTON", "BLONP", "BOLID" })[new Random().Next(5)],
+                Freight = 2.1 * x,
+            }).ToList();
+            return Orders;
+        }
+        public int OrderID { get; set; }
+        public string CustomerID { get; set; }
+        public double Freight { get; set; }
+    }
+}
