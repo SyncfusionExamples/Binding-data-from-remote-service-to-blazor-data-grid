@@ -92,6 +92,9 @@ public class SearchFilter
 
     [GraphQLName("IgnoreCase")]
     public bool IgnoreCase { get; set; }
+
+    [GraphQLName("IgnoreAccent")]
+    public bool IgnoreAccent { get; set; }
 }
 
 /// <summary>
