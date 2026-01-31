@@ -1,0 +1,597 @@
+@page "/"
+@using FilterType = Syncfusion.Blazor.Grids.FilterType;
+@using System.IO;
+<PageTitle>Expense Tracker</PageTitle>
+
+<section class="bg-gray-50 dark:bg-gray-950">
+    <div class="mx-auto w-full py-12 sm:px-6 px-4">
+        <h1 class="mb-4 text-3xl font-bold">Expense Tracker System</h1>
+        <p class="mb-3 text-gray-600">Manage and view all expenses from the database.</p>
+        
+        <SfGrid TValue="ExpenseRecord" 
+                Width="100%"
+                Height="550px" 
+                Toolbar="@ToolbarItems"
+                AllowSorting="true" 
+                AllowFiltering="true"
+                AllowGrouping="true"
+                AllowTextWrap="true" 
+                AllowPaging="true"
+                ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+            <SfDataManager Url="http://localhost:5272/graphql" GraphQLAdaptorOptions="@adaptorOptions" Adaptor="Adaptors.GraphQLAdaptor"></SfDataManager>
+            <GridFilterSettings Type="FilterType.Excel"></GridFilterSettings>
+            <GridPageSettings PageSize="10"></GridPageSettings>
+            <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="EditMode.Dialog">
+                <Template>
+                    @{
+                        var expense = (ExpenseRecord)context;
+                        <div class="expense-form">
+                            <!-- Section: Employee -->
+                            <div class="form-section">
+                                <h4>Employee</h4>
+
+                                <div class="employee-layout">
+                                    <div class="id-name-column">
+                                        <div class="form-item">
+                                            <SfTextBox @bind-Value="@expense.EmployeeName"
+                                                       Placeholder="Employee Name"
+                                                       FloatLabelType="@FloatLabelType.Auto">
+                                            </SfTextBox>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-item avatar-item">
+                                        <label class="form-label">Employee Avatar</label>
+                                        <div class="avatar-slot">
+                                            @if (!string.IsNullOrEmpty(expense.EmployeeAvatarUrl))
+                                            {
+                                                <div class="avatar-inline-preview">
+                                                    <img src="@expense.EmployeeAvatarUrl" alt="Avatar preview" />
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="avatar-dropzone">
+                                                    <SfUploader AutoUpload="false"
+                                                                InputAttributes="@(new Dictionary<string, object>() { { "accept", "image/*" } })"
+                                                                AllowedExtensions=".png,.jpg,.jpeg,.gif">
+                                                        <UploaderEvents ValueChange="@((UploadChangeEventArgs e) => OnAvatarSelected(e, expense))"></UploaderEvents>
+                                                    </SfUploader>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-item email-row">
+                                    <SfTextBox Type="InputType.Email"
+                                               @bind-Value="@expense.EmployeeEmail"
+                                               Placeholder="Email"
+                                               FloatLabelType="@FloatLabelType.Auto">
+                                    </SfTextBox>
+                                </div>
+                            </div>
+
+                            <!-- Section: Expense -->
+                            <div class="form-section">
+                                <h4>Expense</h4>
+                                <div class="form-grid">
+                                    <div class="form-item">
+                                        <SfDropDownList TValue="string"
+                                                        TItem="string"
+                                                        DataSource="@DepartmentOptions"
+                                                        @bind-Value="@expense.Department"
+                                                        Placeholder="Department"
+                                                        AllowFiltering="true"
+                                                        FloatLabelType="@FloatLabelType.Auto">
+                                        </SfDropDownList>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfDropDownList TValue="string"
+                                                        TItem="string"
+                                                        DataSource="@CategoryOptions"
+                                                        @bind-Value="@expense.Category"
+                                                        Placeholder="Category"
+                                                        AllowFiltering="true"
+                                                        FloatLabelType="@FloatLabelType.Auto">
+                                        </SfDropDownList>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfNumericTextBox TValue="double"
+                                                          @bind-Value="@expense.Amount"
+                                                          Min="0"
+                                                          Step="0.01"
+                                                          Format="n2"
+                                                          Placeholder="Amount"
+                                                          FloatLabelType="@FloatLabelType.Auto">
+                                        </SfNumericTextBox>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfNumericTextBox TValue="double"
+                                                          @bind-Value="@expense.TaxPct"
+                                                          Min="0"
+                                                          Step="0.01"
+                                                          Format="p2"
+                                                          Placeholder="Tax %"
+                                                          FloatLabelType="@FloatLabelType.Auto">
+                                        </SfNumericTextBox>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfDatePicker TValue="DateTime?"
+                                                      @bind-Value="@expense.ExpenseDate"
+                                                      Format="MM/dd/yyyy"
+                                                      Placeholder="Expense Date"
+                                                      FloatLabelType="@FloatLabelType.Always">
+                                        </SfDatePicker>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfDropDownList TValue="string"
+                                                        TItem="string"
+                                                        DataSource="@CurrencyOptions"
+                                                        @bind-Value="@expense.Currency"
+                                                        Placeholder="Currency"
+                                                        AllowFiltering="true"
+                                                        FloatLabelType="@FloatLabelType.Auto">
+                                        </SfDropDownList>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section: Payment & Status -->
+                            <div class="form-section">
+                                <h4>Payment & Status</h4>
+                                <div class="form-grid">
+                                    <div class="form-item">
+                                        <SfDropDownList TValue="string"
+                                                        TItem="string"
+                                                        DataSource="@PaymentOptions"
+                                                        @bind-Value="@expense.PaymentMethod"
+                                                        Placeholder="Payment Method"
+                                                        AllowFiltering="true"
+                                                        FloatLabelType="@FloatLabelType.Auto">
+                                        </SfDropDownList>
+                                    </div>
+
+                                    <div class="form-item">
+                                        <SfDropDownList TValue="string"
+                                                        TItem="string"
+                                                        DataSource="@StatusOptions"
+                                                        @bind-Value="@expense.ReimbursementStatus"
+                                                        Placeholder="Status"
+                                                        AllowFiltering="true"
+                                                        FloatLabelType="@FloatLabelType.Auto">
+                                        </SfDropDownList>
+                                    </div>
+
+                                    <div class="form-item span-2">
+                                        <SfMultiSelect TValue="List<string>"
+                                                       TItem="string"
+                                                       DataSource="@TagOptions"
+                                                       @bind-Value="@expense.Tags"
+                                                       Mode="@VisualMode.Box"
+                                                       Placeholder="Tags"
+                                                       AllowFiltering="true"
+                                                       FloatLabelType="@FloatLabelType.Auto">
+                                        </SfMultiSelect>
+                                    </div>
+
+                                    <div class="form-item policy-item">
+                                        <SfCheckBox TChecked="bool"
+                                                    @bind-Checked="@expense.IsPolicyCompliant"
+                                                    Label="Under Policy">
+                                        </SfCheckBox>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section: Description -->
+                            <div class="form-section">
+                                <h4>Description</h4>
+                                <div class="form-item span-2">
+                                    <SfTextBox @bind-Value="@expense.Description"
+                                               Multiline="true"
+                                               Placeholder="Describe your expense">
+                                    </SfTextBox>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </Template>
+            </GridEditSettings>
+            <GridGroupSettings>
+                <CaptionTemplate>
+                    @{
+                        var groupData = context as CaptionTemplateContext;
+                        @if (groupData.Field == "IsPolicyCompliant")
+                        {
+                            <div class="policy-group-caption @(groupData.Key == "true" ? "policy-yes" : "policy-no")">
+                                <span class="label">
+                                    @(groupData.Key == "True" ? "Under Policy" : "Not Under Policy")
+                                </span>
+                                <span class="count">
+                                    — @groupData.Count item@(groupData.Count == 1 ? "" : "s")
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="groupItems">
+                                @groupData.HeaderText - @groupData.Key : @groupData.Count item@(groupData.Count == 1 ? "" : "s")
+                            </span>
+                        }
+                    }
+                </CaptionTemplate>
+            </GridGroupSettings>
+            <GridColumns>
+                <!-- Expense ID Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.ExpenseId)" 
+                            HeaderText="Expense ID" 
+                            Width="130"
+                            IsIdentity="true" ShowInColumnChooser="false"
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Center" 
+                            IsPrimaryKey="true">
+                </GridColumn>
+
+                <!-- Employee Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.EmployeeName)" 
+                            HeaderText="Employee" 
+                            Width="250" 
+                            AllowSearching="true">
+                    <Template>
+                        @{
+                            var expense = (ExpenseRecord)context;
+                            <div class="employee-cell">
+                                <img src="@expense.EmployeeAvatarUrl" alt="@expense.EmployeeName" />
+                                <div>
+                                    <div class="name">@expense.EmployeeName</div>
+                                    <div class="email">@expense.EmployeeEmail</div>
+                                </div>
+                            </div>
+                        }
+                    </Template>
+                </GridColumn>
+
+                <!-- Department Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Department)" 
+                            HeaderText="Department" 
+                            Width="150">
+                </GridColumn>
+
+                <!-- Category Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Category)" 
+                            HeaderText="Category" 
+                            Width="160" 
+                            FilterSettings="@CategoryFilterSettings">
+                </GridColumn>
+
+                <!-- Currency Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Currency)" 
+                            HeaderText="Currency" 
+                            Width="150" 
+                            FilterSettings="@CurrencyFilterSettings">
+                </GridColumn>
+
+                <!-- Amount Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Amount)" 
+                            HeaderText="Amount" 
+                            Width="130" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Right" 
+                            FilterSettings="@AmountFilterSettings">
+                    <Template>
+                        @{
+                            var expense = (ExpenseRecord)context;
+                            @FormatCurrency(expense.Amount, expense.Currency)
+                        }
+                    </Template>
+                </GridColumn>
+
+                <!-- Tax % Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.TaxPct)" 
+                            HeaderText="Tax %" 
+                            Width="140" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Right" 
+                            Format="p2" 
+                            FilterSettings="@TaxPctFilterSettings">
+                </GridColumn>
+
+                <!-- Total Amount Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.TotalAmount)" 
+                            HeaderText="Total (Incl. Tax)" 
+                            Width="180" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Right" 
+                            AllowEditing="false" 
+                            FilterSettings="@TotalAmountFilterSettings">
+                    <Template>
+                        @{
+                            var expense = (ExpenseRecord)context;
+                            @FormatCurrency(expense.TotalAmount, expense.Currency)
+                        }
+                    </Template>
+                </GridColumn>
+
+                <!-- Status Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.ReimbursementStatus)" 
+                            HeaderText="Status" 
+                            Width="140" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Center" 
+                            FilterSettings="@StatusFilterSettings">
+                    <Template>
+                        @{
+                            var expense = (ExpenseRecord)context;
+                            var isStatusNotEmpty = !string.IsNullOrEmpty(expense.ReimbursementStatus);
+                            @if(isStatusNotEmpty)
+                            {
+                                <span class="status-pill" style="background: @GetStatusColor(expense.ReimbursementStatus);">
+                                    @expense.ReimbursementStatus
+                                </span>
+                            }
+                            else
+                            {
+                                <span>--</span>
+                            }
+                        }
+                    </Template>
+                </GridColumn>
+
+                <!-- Tags Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Tags)" 
+                            HeaderText="Tags" 
+                            Width="220">
+                    <Template>
+                        @{
+                            var expense = (ExpenseRecord)context;
+                            @if (expense.Tags != null && expense.Tags.Count > 0)
+                            {
+                                @foreach (var tag in expense.Tags)
+                                {
+                                    <span class="tag-pill">@tag</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>--</span>
+                            }
+                        }
+                    </Template>
+                </GridColumn>
+
+                <!-- Expense Date Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.ExpenseDate)" 
+                            HeaderText="Expense Date" 
+                            Width="150" 
+                            Type="ColumnType.Date" 
+                            Format="MM/dd/yyyy" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Center" 
+                            FilterSettings="@ExpenseDateFilterSettings">
+                </GridColumn>
+
+                <!-- Payment Method Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.PaymentMethod)" 
+                            HeaderText="Payment Method" 
+                            Width="170" 
+                            FilterSettings="@PaymentMethodFilterSettings">
+                </GridColumn>
+
+                <!-- Under Policy Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.IsPolicyCompliant)" 
+                            HeaderText="Under Policy" 
+                            Width="120" 
+                            Type="ColumnType.Boolean" 
+                            DisplayAsCheckBox="true" 
+                            TextAlign="@Syncfusion.Blazor.Grids.TextAlign.Center" 
+                            FilterSettings="@PolicyFilterSettings">
+                    <FilterItemTemplate>
+                        @{
+                            var filterValue = (bool)context;
+                            @(filterValue ? "Under Policy" : "Not Under Policy")
+                        }
+                    </FilterItemTemplate>
+                </GridColumn>
+
+                <!-- Description Column -->
+                <GridColumn Field="@nameof(ExpenseRecord.Description)" 
+                            HeaderText="Description" 
+                            Width="240" 
+                            ClipMode="Syncfusion.Blazor.Grids.ClipMode.EllipsisWithTooltip">
+                </GridColumn>
+            </GridColumns>
+        </SfGrid>
+    </div>
+</section>
+@code {
+    private GraphQLAdaptorOptions adaptorOptions = new GraphQLAdaptorOptions
+    {
+        Query = @"query expenseRecordData($dataManager: DataManagerRequestInput!) {
+                    expenseRecordData(dataManager: $dataManager) {
+                        count
+                        result {
+                            expenseId
+                            employeeName
+                            employeeEmail
+                            employeeAvatarUrl
+                            department
+                            category
+                            description
+                            amount
+                            taxPct
+                            totalAmount
+                            expenseDate
+                            paymentMethod
+                            currency
+                            reimbursementStatus
+                            isPolicyCompliant
+                            tags
+                        }
+                    }
+                }",
+        ResolverName = "expenseRecordData",
+        Mutation = new Syncfusion.Blazor.Data.GraphQLMutation
+        {
+            Insert = @"mutation create($record: ExpenseRecordInput!, $index: Int!, $action: String!, $additionalParameters: Any) {
+                createExpense(record: $record, index: $index, action: $action, additionalParameters: $additionalParameters) {
+                    expenseId
+                    employeeName
+                    employeeEmail
+                    employeeAvatarUrl
+                    department
+                    category
+                    description
+                    amount
+                    taxPct
+                    totalAmount
+                    expenseDate
+                    paymentMethod
+                    currency
+                    reimbursementStatus
+                    isPolicyCompliant
+                    tags
+                }
+            }",
+            Update = @"mutation update($record: ExpenseRecordInput!, $action: String!, $primaryColumnName: String!, $primaryColumnValue: String!, $additionalParameters: Any) {
+                updateExpense(record: $record, action: $action, primaryColumnName: $primaryColumnName, primaryColumnValue: $primaryColumnValue, additionalParameters: $additionalParameters) {
+                    expenseId
+                    employeeName
+                    employeeEmail
+                    employeeAvatarUrl
+                    department
+                    category
+                    description
+                    amount
+                    taxPct
+                    totalAmount
+                    expenseDate
+                    paymentMethod
+                    currency
+                    reimbursementStatus
+                    isPolicyCompliant
+                    tags
+                }
+            }",
+            Delete = @"mutation delete($primaryColumnValue: String!, $additionalParameters: Any) {
+                deleteExpense(primaryColumnValue: $primaryColumnValue, additionalParameters: $additionalParameters)
+            }",
+            Batch = @"mutation batch($changed: [ExpenseRecordInput!], $added: [ExpenseRecordInput!], $deleted: [ExpenseRecordInput!], $action: String!, $primaryColumnName: String!, $additionalParameters: Any, $dropIndex: Int) {
+                batchUpdate(changed: $changed, added: $added, deleted: $deleted, action: $action, primaryColumnName: $primaryColumnName, additionalParameters: $additionalParameters, dropIndex: $dropIndex) {
+                    expenseId
+                    employeeName
+                    employeeEmail
+                    employeeAvatarUrl
+                    department
+                    category
+                    description
+                    amount
+                    taxPct
+                    totalAmount
+                    expenseDate
+                    paymentMethod
+                    currency
+                    reimbursementStatus
+                    isPolicyCompliant
+                    tags
+                }
+            }"
+        },
+    };
+
+    private List<object> ToolbarItems = new() { "Add", "Edit", "Update", "Delete", "Search" };
+
+    // Filter Settings
+    private FilterSettings CategoryFilterSettings = new FilterSettings { Type = FilterType.CheckBox };
+    private FilterSettings CurrencyFilterSettings = new FilterSettings { Type = FilterType.CheckBox };
+    private FilterSettings AmountFilterSettings = new FilterSettings { Type = FilterType.Menu };
+    private FilterSettings TaxPctFilterSettings = new FilterSettings { Type = FilterType.Menu };
+    private FilterSettings TotalAmountFilterSettings = new FilterSettings { Type = FilterType.Menu };
+    private FilterSettings StatusFilterSettings = new FilterSettings { Type = FilterType.CheckBox };
+    private FilterSettings PaymentMethodFilterSettings = new FilterSettings { Type = FilterType.CheckBox };
+    private FilterSettings PolicyFilterSettings = new FilterSettings { Type = FilterType.CheckBox };
+    private FilterSettings ExpenseDateFilterSettings = new FilterSettings { Type = FilterType.Menu };
+
+    // Lookup data
+    private List<string> DepartmentOptions = new() 
+    { 
+        "Finance", "HR & People", "Engineering", "Marketing", "Sales", "Operations" 
+    };
+
+    private List<string> CategoryOptions = new() 
+    { 
+        "Travel & Mileage", "Meals & Entertainment", "Office Supplies", "Training & Education", "Software & SaaS", "Lodging" 
+    };
+
+    private List<string> PaymentOptions = new() 
+    { 
+        "Corporate Card", "Personal Card", "Bank Transfer", "Cash Advance" 
+    };
+
+    private List<string> CurrencyOptions = new() 
+    { 
+        "USD - US Dollar", "EUR - Euro", "GBP - Pound", "JPY - Yen" 
+    };
+
+    private List<string> StatusOptions = new() 
+    { 
+        "Submitted", "Under Review", "Approved", "Paid", "Rejected" 
+    };
+
+    private List<string> TagOptions = new() 
+    { 
+        "Urgent", "Client-Billable", "Non-Billable", "Conference", "Recurring", "Capital Expense" 
+    };
+
+    // Status badge colors
+    private Dictionary<string, string> StatusBadges = new()
+    {
+        { "Submitted", "#c7d2fe" },
+        { "Under Review", "#fde68a" },
+        { "Approved", "#a7f3d0" },
+        { "Paid", "#bae6fd" },
+        { "Rejected", "#fecaca" }
+    };
+
+    private string FormatCurrency(double amount, string currency)
+    {
+        // Extract currency code from format like "USD - US Dollar"
+        var currencyCode = currency?.Split('-')[0].Trim() ?? "USD";
+        return amount.ToString($"C");
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return StatusBadges.TryGetValue(status, out var color) ? color : "#e5e7eb";
+    }
+
+    private async Task OnAvatarSelected(UploadChangeEventArgs e, ExpenseRecord expense)
+    {
+        if (e.Files != null && e.Files.Count > 0)
+        {
+            var file = e.Files[0];
+            
+            try
+            {
+                // Read the file stream (limit to 5MB)
+                using var stream = file.File.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                
+                // Convert to Base64 string
+                var base64String = Convert.ToBase64String(memoryStream.ToArray());
+                
+                // Get MIME type from the uploaded file
+                var mimeType = file.FileInfo.Type;
+                
+                // Create data URL format: data:image/jpeg;base64,{base64data}
+                expense.EmployeeAvatarUrl = $"data:{mimeType};base64,{base64String}";
+            }
+            catch (Exception ex)
+            {
+                // Handle file read errors (e.g., file too large)
+                Console.WriteLine($"Error uploading avatar: {ex.Message}");
+            }
+        }
+    }
+}
+
