@@ -214,12 +214,3 @@ Refer to the [Full Documentation](#full-documentation) for complete GraphQL adap
 ## Full Documentation
 
 Detailed, step-by-step directions including complete code examples, GraphQL query structures, mutation implementations, and advanced configurations are available in the [user guide](https://blazor.syncfusion.com/documentation/datagrid/connecting-to-database/graphql).
-
-For comprehensive information about:
-- **GraphQL Query Structure**: How queries are constructed and data operations are applied
-- **Mutation Resolvers**: Detailed implementation of Create, Update, Delete, and Batch operations
-- **DataManagerRequestInput**: Complete structure for filter, sort, search, and paging parameters
-- **Advanced Filtering**: Nested predicates and complex filter conditions
-- **Grouping and Aggregation**: Server-side grouping implementation
-
-Please refer to the complete documentation file included in this repository: `graphql-doc.md`
