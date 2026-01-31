@@ -213,4 +213,4 @@ Refer to the [Full Documentation](#full-documentation) for complete GraphQL adap
 
 ## Full Documentation
 
-Detailed, step-by-step directions including complete code examples, GraphQL query structures, mutation implementations, and advanced configurations are available in the [user guide](https://blazor.syncfusion.com/documentation/datagrid/connecting-to-database/graphql).
+Detailed, step-by-step directions including complete code examples, GraphQL query structures, mutation implementations, and advanced configurations are available in the [user guide](https://blazor.syncfusion.com/documentation/datagrid/connecting-to-adaptors/graphql-adaptor).
