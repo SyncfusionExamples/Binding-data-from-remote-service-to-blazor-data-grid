@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WebApiAdaptor/WebApiAdaptor.Client/WebApiAdaptor.Client.csproj" />
+  <Project Path="WebApiAdaptor/WebApiAdaptor/WebApiAdaptor.csproj" />
+</Solution>
