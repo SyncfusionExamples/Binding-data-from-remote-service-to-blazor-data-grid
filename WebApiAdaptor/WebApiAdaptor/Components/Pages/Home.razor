@@ -1,0 +1,40 @@
+﻿@page "/"
+@using WebApiAdaptor.Models
+
+<SfGrid TValue="OrderDetails"
+        AllowFiltering="true"
+        AllowSorting="true"
+        AllowPaging="true"
+        Toolbar="@(new List<string> { "Add", "Edit", "Delete", "Update", "Cancel", "Search" })"
+        Height="348">
+    <SfDataManager Url="https://localhost:7041/api/Grid"
+                   Adaptor="Adaptors.WebApiAdaptor">
+    </SfDataManager>
+    <GridEditSettings AllowEditing="true"
+                      AllowDeleting="true"
+                      AllowAdding="true"
+                      Mode="EditMode.Normal">
+    </GridEditSettings>
+    <GridColumns>
+        <GridColumn Field="OrderID"
+                    HeaderText="Order ID"
+                    IsPrimaryKey="true"
+                    ValidationRules="@(new ValidationRules{ Required= true })"
+                    Width="120"
+                    TextAlign="TextAlign.Right">
+        </GridColumn>
+        <GridColumn Field="CustomerID"
+                    HeaderText="Customer Name"
+                    ValidationRules="@(new ValidationRules{ Required= true, MinLength=3 })"
+                    Width="160">
+        </GridColumn>
+        <GridColumn Field="ShipCity"
+                    HeaderText="Ship City"
+                    Width="150">
+        </GridColumn>
+        <GridColumn Field="ShipCountry"
+                    HeaderText="Ship Country"
+                    Width="150">
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
