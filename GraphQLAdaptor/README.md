@@ -20,7 +20,7 @@ This repository demonstrates a production-ready pattern for binding **GraphQL** 
 | Visual Studio 2022 | 17.0 or later | Development IDE with Blazor workload |
 | .NET SDK | net8.0 or compatible | Runtime and build tools |
 | HotChocolate.AspNetCore | 15.1 or later | GraphQL server framework |
-| Syncfusion.Blazor.Grids | Latest | DataGrid and UI components |
+| Syncfusion.Blazor.Grid | Latest | DataGrid and UI components |
 | Syncfusion.Blazor.Themes | Latest | Styling for DataGrid components |
 | Syncfusion.Blazor.Data | Latest | Data adaptors including GraphQL support |
 
