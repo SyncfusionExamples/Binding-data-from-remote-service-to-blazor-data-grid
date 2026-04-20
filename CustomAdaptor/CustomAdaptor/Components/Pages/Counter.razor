@@ -1,0 +1,145 @@
+﻿@page "/counter"
+
+<h1>How to pass additional parameters to custom adaptor</h1>
+
+<SfGrid TValue="OrderDetails"
+        Width="100%"
+        AllowSorting="true"
+        AllowFiltering="true"
+        AllowPaging="true"
+        Query="@GridQuery"
+        Toolbar="@(new List<string> { "Search" })">
+
+    <SfDataManager Adaptor="Adaptors.CustomAdaptor"
+                   AdaptorInstance="@typeof(CustomAdaptor)" />
+
+    <GridPageSettings PageSize="10" />
+    <GridColumns>
+        <GridColumn Field=@nameof(OrderDetails.OrderId)
+                    HeaderText="Order ID"
+                    TextAlign="TextAlign.Right"
+                    Width="140" />
+        <GridColumn Field=@nameof(OrderDetails.CustomerId)
+                    HeaderText="Customer ID"
+                    Width="160" />
+        <GridColumn Field=@nameof(OrderDetails.ShipCity)
+                    HeaderText="Ship City"
+                    Width="140" />
+        <GridColumn Field=@nameof(OrderDetails.ShipCountry)
+                    HeaderText="Ship Country"
+                    Width="160" />
+        <GridColumn Field=@nameof(OrderDetails.Freight)
+                    HeaderText="Freight"
+                    Format="C2"
+                    TextAlign="TextAlign.Right"
+                    Width="130" />
+        <GridColumn Field=@nameof(OrderDetails.OrderDate)
+                    HeaderText="Order Date"
+                    Type="ColumnType.Date"
+                    Format="d"
+                    TextAlign="TextAlign.Right"
+                    Width="140" />
+    </GridColumns>
+</SfGrid>
+
+@code {
+    // Custom parameter to be included with each DataManager request
+    public Query GridQuery = new Query().AddParams("CustomerIDFilter", "ALFKI");
+    /// <summary>
+    /// Custom adaptor for the Syncfusion Blazor DataGrid that operates on an
+    /// in‑memory collection and supports request‑driven data processing.
+    /// </summary>
+    public sealed class CustomAdaptor : DataAdaptor
+    {
+        /// <summary>
+        /// Retrieves records and applies the operations described by the <see cref="DataManagerRequest"/>.
+        /// Executes during initial grid load and whenever filtering, searching, sorting,
+        /// paging, grouping, or other data operations are triggered.
+        /// </summary>
+        /// <param name="dataManagerRequest">
+        /// Describes the requested data operations from the DataGrid.
+        /// </param>
+        /// <param name="key">
+        /// Optional correlation key; not used.
+        /// </param>
+        /// <returns>
+        /// Returns a <see cref="DataResult"/> when counts are required; otherwise returns the collection.
+        /// </returns>
+        public override async Task<object> ReadAsync(DataManagerRequest dataManagerRequest, string? key = null)
+        {
+            try
+            {
+                IEnumerable<OrderDetails> dataSource = OrderDetails.GetAllRecords();
+
+                // Access custom parameter (CustomerIDFilter) and apply an optional pre-filter
+                if (dataManagerRequest.Params != null &&
+                    dataManagerRequest.Params.TryGetValue("CustomerIDFilter", out var value) &&
+                    !string.IsNullOrWhiteSpace(value?.ToString()))
+                {
+                    string customerId = value.ToString()!;
+                    dataSource = dataSource.Where(o => o.CustomerId == customerId);
+                }
+
+                // -----------------
+                // Searching
+                // -----------------
+                if (dataManagerRequest.Search is { Count: > 0 })
+                {
+                    dataSource = DataOperations.PerformSearching(
+                        dataSource,
+                        dataManagerRequest.Search);
+                }
+
+                // -----------------
+                // Filtering
+                // -----------------
+                if (dataManagerRequest.Where is { Count: > 0 })
+                {
+                    dataSource = DataOperations.PerformFiltering(
+                        dataSource,
+                        dataManagerRequest.Where,
+                        dataManagerRequest.Where[0].Operator);
+                }
+                // -----------------
+                // Sorting
+                // -----------------
+                if (dataManagerRequest.Sorted is { Count: > 0 })
+                {
+                    dataSource = DataOperations.PerformSorting(
+                        dataSource,
+                        dataManagerRequest.Sorted);
+                }
+
+                // Compute the total number of records.
+                int totalRecordsCount = dataSource.Count();
+
+                // -----------------
+                // Paging (Skip/Take)
+                // -----------------
+                if (dataManagerRequest.Skip > 0)
+                {
+                    dataSource = DataOperations.PerformSkip(dataSource, dataManagerRequest.Skip);
+                }
+
+                if (dataManagerRequest.Take > 0)
+                {
+                    dataSource = DataOperations.PerformTake(dataSource, dataManagerRequest.Take);
+                }
+
+                // When RequiresCounts = true, return DataResult; otherwise return the collection.
+                return dataManagerRequest.RequiresCounts
+                    ? new DataResult
+                    {
+                        Result = dataSource,
+                        Count = totalRecordsCount
+                    }
+                    : (object)dataSource;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Data retrieval failed in CustomAdaptor: {ex.Message}", ex);
+            }
+        }
+    }
+}
