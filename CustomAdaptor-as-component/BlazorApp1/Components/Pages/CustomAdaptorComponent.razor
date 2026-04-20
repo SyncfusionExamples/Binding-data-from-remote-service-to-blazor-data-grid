@@ -1,0 +1,139 @@
+﻿@inherits DataAdaptor
+@using System.Collections
+
+<CascadingValue Value="@this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    /// <summary>
+    /// Projected child content (placeholder inside SfDataManager).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Retrieves records and applies the operations described by the <see cref="DataManagerRequest"/>.
+    /// Executes during initial grid load and whenever filtering, searching, sorting,
+    /// paging, grouping, or other data operations are triggered.
+    /// </summary>
+    /// <param name="dataManagerRequest">
+    /// Describes the requested data operations from the DataGrid.
+    /// </param>
+    /// <param name="key">
+    /// Optional correlation key; not used.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="DataResult"/> when counts are required; otherwise returns the collection.
+    /// </returns>
+    public override object Read(DataManagerRequest dataManagerRequest, string? key = null)
+    {
+        try
+        {
+            // Retrieve the in‑memory data collection.
+            IEnumerable<OrderDetails> dataSource = OrderDetails.GetAllRecords();
+
+            // -----------------
+            // Searching
+            // -----------------
+            if (dataManagerRequest.Search is { Count: > 0 })
+            {
+                dataSource = DataOperations.PerformSearching(
+                    dataSource,
+                    dataManagerRequest.Search);
+            }
+
+            // -----------------
+            // Filtering
+            // -----------------
+            if (dataManagerRequest.Where is { Count: > 0 })
+            {
+                dataSource = DataOperations.PerformFiltering(
+                    dataSource,
+                    dataManagerRequest.Where,
+                    dataManagerRequest.Where[0].Operator);
+            }
+            // -----------------
+            // Sorting
+            // -----------------
+            if (dataManagerRequest.Sorted is { Count: > 0 })
+            {
+                dataSource = DataOperations.PerformSorting(
+                    dataSource,
+                    dataManagerRequest.Sorted);
+            }
+
+            // Compute the total number of records.
+            int totalRecordsCount = dataSource.Count();
+
+            // -----------------
+            // Paging (Skip/Take)
+            // -----------------
+            if (dataManagerRequest.Skip > 0)
+            {
+                dataSource = DataOperations.PerformSkip(dataSource, dataManagerRequest.Skip);
+            }
+
+            if (dataManagerRequest.Take > 0)
+            {
+                dataSource = DataOperations.PerformTake(dataSource, dataManagerRequest.Take);
+            }
+            // -----------------------
+            // Grouping (+ optional aggregates)
+            // -----------------------
+            // When grouping is present, return a hierarchical structure and include count/aggregates envelope.
+            if (dataManagerRequest.Group is { Count: > 0 })
+            {
+                // Build the grouped hierarchy from the current data set.
+                IEnumerable grouped = dataSource.ToList();
+                // Build hierarchical structure for each group descriptor in request order.
+                foreach (var group in dataManagerRequest.Group)
+                {
+                    grouped = DataUtil.Group<OrderDetails>(
+                        grouped,
+                        group,
+                        dataManagerRequest.Aggregates,   // pass descriptors if present
+                        0,
+                        dataManagerRequest.GroupByFormatter);
+                }
+
+                // Build DataResult with optional aggregates
+                return new DataResult
+                {
+                    Result = grouped,
+                    Count = totalRecordsCount,
+                    Aggregates = dataManagerRequest.Aggregates is { Count: > 0 }
+                                 ? DataUtil.PerformAggregation(dataSource, dataManagerRequest.Aggregates)
+                                 : null
+                };
+            }
+
+
+            // -----------------------
+            // Aggregates (no grouping)
+            // -----------------------
+            if (dataManagerRequest.Aggregates is { Count: > 0 })
+            {
+                return new DataResult
+                {
+                    Result = dataSource,
+                    Count = totalRecordsCount,
+                    Aggregates = DataUtil.PerformAggregation(dataSource, dataManagerRequest.Aggregates)
+                };
+            }
+            // When RequiresCounts = true, return DataResult; otherwise return the collection.
+            return dataManagerRequest.RequiresCounts
+                ? new DataResult
+                {
+                    Result = dataSource,
+                    Count = totalRecordsCount
+                }
+                : (object)dataSource;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Data retrieval failed in CustomAdaptor: {ex.Message}", ex);
+        }
+    }
+}
