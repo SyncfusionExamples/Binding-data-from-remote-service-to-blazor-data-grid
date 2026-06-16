@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Syncfusion.Blazor.Data" Version="29.1.35" />
-    <PackageReference Include="Syncfusion.Blazor.Grid" Version="29.1.35" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="29.1.35" />
+    <PackageReference Include="Syncfusion.Blazor.Data" Version="*" />
+    <PackageReference Include="Syncfusion.Blazor.Grid" Version="*" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="*" />
   </ItemGroup>
 
 </Project>
