@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ODataV4Adaptor.Client\ODataV4Adaptor.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.21" />
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="9.2.1" />
   </ItemGroup>
 
